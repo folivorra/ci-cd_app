@@ -1,17 +1,11 @@
-FROM golang:1.21 AS builder
+FROM golang:1.21 as builder
 
 WORKDIR /app
-
-COPY go.mod go.sum ./
-RUN go mod download
-
 COPY . .
-RUN go build -o main .
 
-FROM debian:bullseye-slim
+RUN CGO_ENABLED=0 GOOS=linux go build -o main .
 
-WORKDIR /app
+FROM scratch
+COPY --from=builder /app/main /main
 
-COPY --from=builder /app/main .
-
-CMD ["./main"]
+ENTRYPOINT ["/main"]
